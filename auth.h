@@ -1,7 +1,15 @@
 #ifndef AUTH_H
 #define AUTH_H
 
-void registerUser(void);
-char loginUser(void);
+#define MAX_USERNAME_LEN 32
+#define MAX_PASSWORD_LEN 64
+#define HASH_STR_LEN 65
 
-#endif
+int registerUser(void);
+int loginUser(void);
+void logoutUser(void);
+int isLoggedIn(void);
+const char* getCurrentUser(void);
+void hashPassword(const char *plain, char *outHex);
+
+#endif // AUTH_H
