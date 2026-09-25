@@ -1,58 +1,173 @@
 # Contact Management System
 
-This is a simple console-based contact management system developed in C. It allows users to register, log in, manage their contacts, and organize them into groups. The data is persisted to local text files.
+A contact management system written in **C** with authentication, contact management, group management, file-based data storage, and a graphical interface.
 
 ## Features
 
-* **User Authentication:**
-    * **Register:** Create a new user account.
-    * **Login:** Access the system with an existing account.
+- User registration and login
 
-* **Contact Management:**
-    * **Add Contact:** Store a new contact with details such as name, phone number, email, and address.
-    * **Show Contacts:** View a list of all saved contacts.
-    * **Search Contact:** Find a specific contact by name or phone number.
-    * **Update Contact:** Modify the details of an existing contact.
-    * **Delete Contact:** Remove a contact from the list.
-    * **Sort Contacts:** Sort contacts alphabetically by name.
+- Add contacts
 
-* **Group Management:**
-    * **Create Group:** Organize contacts into groups.
-    * **Show Groups:** View existing groups and their members.
+- View contacts
 
-## How to Compile and Run
+- Search contacts
 
-This project consists of multiple C source files and header files.
+- Update contacts
 
-### Compilation
+- Delete contacts
 
-To compile the project, you need a C compiler like GCC. Use the following command in your terminal:
+- Sort contacts alphabetically
 
-```sh
+- Create and manage groups
+
+- Persistent data storage
+
+- Graphical user interface
+
+- Backend server support
+
+- Windows and Linux GUI launch scripts
+
+## Technologies
+
+- C
+
+- Python
+
+- HTML / CSS / JavaScript
+
+- GCC
+
+- Make
+
+- Git
+
+- GitHub
+
+## Project Structure
+
+```
+contact-management/
+├── main.c
+├── auth.c
+├── auth.h
+├── contact.c
+├── contact.h
+├── groups.c
+├── groups.h
+├── contacts.txt
+├── customers.txt
+├── groups.txt
+├── Makefile
+├── server.py
+├── run_gui.bat
+├── run_gui.sh
+├── data/
+├── gui/
+└── README.md
+```
+
+# Overview
+
+The project is divided into multiple modules.
+
+# Authentication
+
+Handles:
+
+- User registration
+- User login
+- User account management
+- Contact Management
+
+  # Handles:
+
+- Adding contacts
+- Viewing contacts
+- Searching contacts
+- Updating contacts
+- Deleting contacts
+- Sorting contacts
+- Group Management
+- Creating groups
+- Viewing groups
+- Organizing contacts into groups
+
+# Compilation
+Using GCC
 gcc main.c auth.c contact.c groups.c -o contact_manager
-```
 
-* `main.c`: Contains the main application logic and user menu.
-* `auth.c`: Handles user registration and login.
-* `contact.c`: Implements contact-related functions (add, show, search, etc.).
-* `groups.c`: Manages group creation and display.
-* `-o contact_manager`: Specifies the output executable file name.
-
-### Running the Application
-
-After successful compilation, you can run the executable:
-
-```sh
+Run:
 ./contact_manager
-```
 
-## File Structure
+# Using Makefile
+-make
 
-* `main.c`: The entry point of the program.
-* `auth.c`, `auth.h`: User authentication logic.
-* `contact.c`, `contact.h`: Contact management logic.
-* `groups.c`, `groups.h`: Group management logic.
-* `customers.txt`: Stores user credentials.
-* `contacts.txt`: Stores contact data.
+# GUI
 
-**Note:** The `.txt` files are created automatically by the program to store data.
+The project also includes a graphical interface.
+
+The GUI provides a visual way to interact with the contact management system.
+
+# Linux
+./run_gui.sh
+
+# Windows
+run_gui.bat
+
+# Data Storage
+
+The application stores data locally using text files.
+
+- customers.txt — User information
+- contacts.txt — Contact information
+- groups.txt — Group information
+- data/ — Additional application data
+
+# Backend
+
+The project includes server.py, which provides backend/server functionality for the graphical interface.
+
+# File Description
+- main.c — Main application logic and menu
+- auth.c — Authentication implementation
+- auth.h — Authentication declarations
+- contact.c — Contact management implementation
+- contact.h — Contact management declarations
+- groups.c — Group management implementation
+- groups.h — Group management declarations
+- server.py — Backend server
+- Makefile — Build automation
+- run_gui.sh — Linux GUI launcher
+- run_gui.bat — Windows GUI launcher
+- gui/ — Graphical interface files
+
+# Learning Objectives
+
+This project helps understand:
+
+- C programming
+- File handling
+- Structures and modular programming
+- Authentication logic
+- Contact and data management
+- Group management
+- GUI development
+- Backend integration
+- Build automation
+- Future Improvements
+- Database integration
+- Improved authentication
+- Better GUI design
+- Contact import and export
+- Advanced search and filtering
+- Cloud synchronization
+- Improved security
+
+# Author
+
+Shivank Garg
+
+# GitHub:
+
+https://github.com/Shivank-Garg45
