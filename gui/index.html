@@ -1,0 +1,769 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>ContactHub Pro - Multi-User Contact Management</title>
+  <script src="https://www.gstatic.com/antigravity/web/dev/tailwindcss.min.js"></script>
+  <style>
+    ::-webkit-scrollbar { width: 6px; height: 6px; }
+    ::-webkit-scrollbar-track { background: transparent; }
+    ::-webkit-scrollbar-thumb { background: rgba(150, 150, 150, 0.25); border-radius: 9999px; }
+    ::-webkit-scrollbar-thumb:hover { background: rgba(150, 150, 150, 0.4); }
+  </style>
+</head>
+<body class="bg-[var(--background)] text-[var(--foreground)] antialiased m-0 p-0 h-screen flex overflow-hidden font-sans select-none">
+
+  <!-- APP SHELL -->
+  <div class="flex w-full h-full">
+
+    <!-- LEFT SIDEBAR -->
+    <aside class="w-64 min-w-[16rem] bg-[var(--sidebar)] border-r border-[var(--border)] flex flex-col p-4 gap-4">
+      <!-- Brand -->
+      <div class="flex items-center gap-3 px-2 py-1">
+        <div class="w-9 h-9 rounded-xl bg-gradient-to-br from-indigo-500 to-purple-600 flex items-center justify-center text-white font-bold text-lg shadow-md shadow-indigo-500/20">
+          📇
+        </div>
+        <div>
+          <h1 class="font-bold text-sm tracking-tight text-[var(--foreground)]">ContactHub</h1>
+          <span class="text-xs text-[var(--muted-foreground)] uppercase tracking-wider font-semibold">Multi-User Pro</span>
+        </div>
+      </div>
+
+      <!-- Navigation -->
+      <nav class="flex flex-col gap-1">
+        <button id="navAll" class="nav-btn w-full flex items-center justify-between px-3 py-2 rounded-lg text-xs font-semibold bg-indigo-500/15 text-indigo-500 transition">
+          <span class="flex items-center gap-2.5">
+            <span>👥</span>
+            <span>All Contacts</span>
+          </span>
+          <span id="badgeAll" class="bg-indigo-500 text-white px-2 py-0.5 rounded-full text-xs">0</span>
+        </button>
+
+        <button id="navFavs" class="nav-btn w-full flex items-center justify-between px-3 py-2 rounded-lg text-xs font-medium text-[var(--muted-foreground)] hover:bg-[var(--card)] hover:text-[var(--foreground)] transition">
+          <span class="flex items-center gap-2.5">
+            <span class="text-amber-400">★</span>
+            <span>Starred Favorites</span>
+          </span>
+          <span id="badgeFavs" class="bg-[var(--card)] border border-[var(--border)] text-[var(--muted-foreground)] px-2 py-0.5 rounded-full text-xs">0</span>
+        </button>
+
+        <button id="navStats" class="w-full flex items-center gap-2.5 px-3 py-2 rounded-lg text-xs font-medium text-[var(--muted-foreground)] hover:bg-[var(--card)] hover:text-[var(--foreground)] transition">
+          <span>📊</span>
+          <span>Analytics & Stats</span>
+        </button>
+      </nav>
+
+      <!-- Groups List -->
+      <div class="flex flex-col gap-1.5 flex-1 overflow-hidden">
+        <div class="flex items-center justify-between px-2 pt-2 text-xs font-bold text-[var(--muted-foreground)] uppercase tracking-wider">
+          <span>Personal Groups</span>
+          <button id="btnOpenAddGroup" class="hover:text-indigo-400 text-base leading-none p-1 rounded hover:bg-[var(--card)]" title="New Group">+</button>
+        </div>
+        <div id="sidebarGroups" class="flex flex-col gap-1 overflow-y-auto pr-1">
+          <!-- Dynamically populated -->
+        </div>
+      </div>
+
+      <!-- Footer User Profile -->
+      <div class="pt-3 border-t border-[var(--border)] flex flex-col gap-2">
+        <div class="flex items-center justify-between p-2 rounded-xl bg-[var(--card)] border border-[var(--border)]">
+          <div class="flex items-center gap-2.5">
+            <div id="userAvatar" class="w-8 h-8 rounded-full bg-indigo-600 text-white font-bold text-xs flex items-center justify-center">?</div>
+            <div class="flex flex-col">
+              <span id="userNameDisplay" class="text-xs font-semibold truncate max-w-[100px]">Guest</span>
+              <span class="text-xs text-emerald-500 font-medium flex items-center gap-1">● Account Active</span>
+            </div>
+          </div>
+          <button id="btnSwitchAccount" class="text-xs text-[var(--muted-foreground)] hover:text-indigo-400 font-semibold p-1 hover:bg-[var(--background)] rounded" title="Switch User or Logout">
+            Logout
+          </button>
+        </div>
+      </div>
+    </aside>
+
+    <!-- MIDDLE PANE: CONTACTS LIST -->
+    <section class="w-80 min-w-[20rem] bg-[var(--content)] border-r border-[var(--border)] flex flex-col overflow-hidden">
+      <!-- Search & Controls Header -->
+      <div class="p-3 border-b border-[var(--border)] bg-[var(--sidebar)] flex flex-col gap-2.5">
+        <div class="flex items-center justify-between">
+          <h2 id="listHeaderTitle" class="font-bold text-base text-[var(--foreground)]">All Contacts</h2>
+          <button id="btnOpenAddContact" class="bg-indigo-600 hover:bg-indigo-500 text-white text-xs font-semibold px-3 py-1.5 rounded-lg shadow-sm flex items-center gap-1.5 transition">
+            <span>+</span> New Contact
+          </button>
+        </div>
+
+        <!-- Search Bar -->
+        <div class="relative flex items-center">
+          <span class="absolute left-3 text-[var(--muted-foreground)] text-xs">🔍</span>
+          <input type="text" id="searchInput" placeholder="Search contacts (/)" class="w-full bg-[var(--card)] border border-[var(--border)] focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 rounded-lg py-1.5 pl-8 pr-7 text-xs text-[var(--foreground)] placeholder-[var(--muted-foreground)] outline-none transition">
+          <span class="absolute right-2 text-xs text-[var(--muted-foreground)] border border-[var(--border)] bg-[var(--background)] px-1.5 py-0.5 rounded text-[10px]">/</span>
+        </div>
+
+        <!-- Filter bar -->
+        <div class="flex items-center justify-between text-xs text-[var(--muted-foreground)]">
+          <span id="contactCountBadge">0 contacts</span>
+          <select id="sortSelect" class="bg-transparent border-none text-xs text-[var(--foreground)] font-medium outline-none cursor-pointer">
+            <option value="name-asc" class="bg-[var(--card)]">Name (A → Z)</option>
+            <option value="name-desc" class="bg-[var(--card)]">Name (Z → A)</option>
+            <option value="company" class="bg-[var(--card)]">Company</option>
+            <option value="recent" class="bg-[var(--card)]">Recently Added</option>
+          </select>
+        </div>
+      </div>
+
+      <!-- Contacts Scroll Area -->
+      <div id="contactsContainer" class="flex-1 overflow-y-auto p-2 flex flex-col gap-1.5">
+        <!-- Rendered via JS -->
+      </div>
+    </section>
+
+    <!-- RIGHT PANE: DETAIL VIEW -->
+    <main class="flex-1 bg-[var(--background)] flex flex-col overflow-y-auto relative">
+      <!-- Empty State -->
+      <div id="detailEmptyState" class="flex-1 flex flex-col items-center justify-center text-[var(--muted-foreground)] gap-3 p-8">
+        <span class="text-5xl opacity-40">📇</span>
+        <p class="text-sm">Select a contact to view full details</p>
+      </div>
+
+      <!-- Active Contact Details -->
+      <div id="detailActiveState" class="hidden p-8 max-w-3xl flex-col gap-6">
+        <!-- Hero Header -->
+        <div class="flex items-center justify-between pb-6 border-b border-[var(--border)]">
+          <div class="flex items-center gap-4">
+            <div id="dAvatar" class="w-16 h-16 rounded-full flex items-center justify-center text-white text-xl font-bold shadow-lg shadow-black/10">JD</div>
+            <div>
+              <div class="flex items-center gap-2">
+                <h2 id="dName" class="text-2xl font-bold text-[var(--foreground)]">John Doe</h2>
+                <button id="dStarToggle" class="text-xl text-amber-400 hover:scale-110 transition">★</button>
+              </div>
+              <p id="dRoleCompany" class="text-xs text-[var(--muted-foreground)] mt-0.5">Engineering · TechCorp</p>
+            </div>
+          </div>
+          <div class="flex items-center gap-2">
+            <button id="btnEditContact" class="px-3 py-1.5 rounded-lg border border-[var(--border)] hover:bg-[var(--card)] text-xs font-semibold flex items-center gap-1.5 transition">
+              ✏️ Edit
+            </button>
+            <button id="btnDeleteContact" class="px-3 py-1.5 rounded-lg bg-red-500/10 text-red-500 hover:bg-red-500 hover:text-white text-xs font-semibold flex items-center gap-1.5 transition">
+              🗑️ Delete
+            </button>
+          </div>
+        </div>
+
+        <!-- Quick Action Buttons -->
+        <div class="grid grid-cols-4 gap-3">
+          <a id="dActionCall" href="#" class="flex flex-col items-center gap-1 p-3 rounded-xl bg-[var(--card)] border border-[var(--border)] hover:border-indigo-500 hover:text-indigo-400 transition text-center">
+            <span class="text-lg">📞</span>
+            <span class="text-xs font-semibold">Call</span>
+          </a>
+          <a id="dActionEmail" href="#" class="flex flex-col items-center gap-1 p-3 rounded-xl bg-[var(--card)] border border-[var(--border)] hover:border-indigo-500 hover:text-indigo-400 transition text-center">
+            <span class="text-lg">✉️</span>
+            <span class="text-xs font-semibold">Email</span>
+          </a>
+          <button id="dActionCopy" class="flex flex-col items-center gap-1 p-3 rounded-xl bg-[var(--card)] border border-[var(--border)] hover:border-indigo-500 hover:text-indigo-400 transition text-center">
+            <span class="text-lg">📋</span>
+            <span class="text-xs font-semibold">Copy Info</span>
+          </button>
+          <button id="dActionVcard" class="flex flex-col items-center gap-1 p-3 rounded-xl bg-[var(--card)] border border-[var(--border)] hover:border-indigo-500 hover:text-indigo-400 transition text-center">
+            <span class="text-lg">📇</span>
+            <span class="text-xs font-semibold">vCard Export</span>
+          </button>
+        </div>
+
+        <!-- Detail Cards Grid -->
+        <div class="grid grid-cols-2 gap-4">
+          <div class="p-4 rounded-xl bg-[var(--card)] border border-[var(--border)] flex flex-col gap-1">
+            <span class="text-xs font-bold text-[var(--muted-foreground)] uppercase">Primary Phone</span>
+            <span id="dPhone" class="text-sm font-semibold text-[var(--foreground)]">+1 555-0199</span>
+          </div>
+
+          <div class="p-4 rounded-xl bg-[var(--card)] border border-[var(--border)] flex flex-col gap-1">
+            <span class="text-xs font-bold text-[var(--muted-foreground)] uppercase">Work Phone</span>
+            <span id="dWorkPhone" class="text-sm font-semibold text-[var(--foreground)]">-</span>
+          </div>
+
+          <div class="p-4 rounded-xl bg-[var(--card)] border border-[var(--border)] flex flex-col gap-1">
+            <span class="text-xs font-bold text-[var(--muted-foreground)] uppercase">Email Address</span>
+            <span id="dEmail" class="text-sm font-semibold text-indigo-400">john@example.com</span>
+          </div>
+
+          <div class="p-4 rounded-xl bg-[var(--card)] border border-[var(--border)] flex flex-col gap-1">
+            <span class="text-xs font-bold text-[var(--muted-foreground)] uppercase">Assigned Group</span>
+            <span id="dGroup" class="text-sm font-semibold text-emerald-400">General</span>
+          </div>
+
+          <div class="col-span-2 p-4 rounded-xl bg-[var(--card)] border border-[var(--border)] flex flex-col gap-1">
+            <span class="text-xs font-bold text-[var(--muted-foreground)] uppercase">Physical Address</span>
+            <span id="dAddress" class="text-sm font-medium text-[var(--foreground)]">-</span>
+          </div>
+
+          <div class="col-span-2 p-4 rounded-xl bg-[var(--card)] border border-[var(--border)] flex flex-col gap-1">
+            <span class="text-xs font-bold text-[var(--muted-foreground)] uppercase">Notes & Remarks</span>
+            <span id="dNotes" class="text-sm text-[var(--muted-foreground)] leading-relaxed">-</span>
+          </div>
+
+          <div class="p-4 rounded-xl bg-[var(--card)] border border-[var(--border)] flex flex-col gap-1">
+            <span class="text-xs font-bold text-[var(--muted-foreground)] uppercase">System ID</span>
+            <span id="dId" class="text-sm font-semibold text-[var(--muted-foreground)]">#1</span>
+          </div>
+
+          <div class="p-4 rounded-xl bg-[var(--card)] border border-[var(--border)] flex flex-col gap-1">
+            <span class="text-xs font-bold text-[var(--muted-foreground)] uppercase">Created Timestamp</span>
+            <span id="dCreated" class="text-sm font-semibold text-[var(--muted-foreground)]">2026-09-25</span>
+          </div>
+        </div>
+      </div>
+    </main>
+  </div>
+
+  <!-- AUTH MODAL: LOGIN / REGISTER -->
+  <div id="modalAuth" class="fixed inset-0 bg-black/75 backdrop-blur-md flex items-center justify-center p-4 z-50">
+    <div class="bg-[var(--card)] border border-[var(--border)] rounded-2xl w-full max-w-sm shadow-2xl overflow-hidden flex flex-col">
+      <div class="p-6 text-center border-b border-[var(--border)] bg-[var(--sidebar)]">
+        <div class="w-12 h-12 mx-auto rounded-2xl bg-gradient-to-br from-indigo-500 to-purple-600 flex items-center justify-center text-white text-2xl font-bold mb-2 shadow-lg shadow-indigo-500/30">
+          📇
+        </div>
+        <h2 class="text-base font-bold text-[var(--foreground)]">Welcome to ContactHub</h2>
+        <p class="text-xs text-[var(--muted-foreground)] mt-0.5">Secure, isolated contact management</p>
+      </div>
+
+      <!-- Auth Tabs -->
+      <div class="flex border-b border-[var(--border)]">
+        <button id="tabLogin" class="flex-1 py-2.5 text-xs font-bold text-indigo-500 border-b-2 border-indigo-500 transition">Sign In</button>
+        <button id="tabRegister" class="flex-1 py-2.5 text-xs font-semibold text-[var(--muted-foreground)] hover:text-[var(--foreground)] transition">Create Account</button>
+      </div>
+
+      <!-- Auth Form -->
+      <form id="authForm" class="p-6 flex flex-col gap-3.5">
+        <div class="flex flex-col gap-1">
+          <label class="text-xs font-semibold text-[var(--muted-foreground)]">Username</label>
+          <input type="text" id="authUsername" required placeholder="e.g. shivank or divyanshsood22" class="bg-[var(--background)] border border-[var(--border)] rounded-lg px-3 py-2 text-xs text-[var(--foreground)] outline-none focus:border-indigo-500">
+        </div>
+
+        <div class="flex flex-col gap-1">
+          <label class="text-xs font-semibold text-[var(--muted-foreground)]">Password</label>
+          <input type="password" id="authPassword" required placeholder="••••••••" class="bg-[var(--background)] border border-[var(--border)] rounded-lg px-3 py-2 text-xs text-[var(--foreground)] outline-none focus:border-indigo-500">
+        </div>
+
+        <div id="authErrorMsg" class="hidden text-xs text-red-400 bg-red-500/10 border border-red-500/20 px-3 py-2 rounded-lg"></div>
+
+        <button type="submit" id="btnAuthSubmit" class="mt-2 w-full py-2.5 rounded-lg bg-indigo-600 hover:bg-indigo-500 text-white font-semibold text-xs shadow-md transition">
+          Sign In
+        </button>
+
+        <p class="text-center text-[10px] text-[var(--muted-foreground)] mt-2">
+          Demo: <strong>divyanshsood22</strong> (pass: <strong>2222</strong>) or register a new user!
+        </p>
+      </form>
+    </div>
+  </div>
+
+  <!-- MODAL: ADD / EDIT CONTACT -->
+  <div id="modalContact" class="fixed inset-0 bg-black/60 backdrop-blur-sm hidden items-center justify-center p-4 z-50">
+    <div class="bg-[var(--card)] border border-[var(--border)] rounded-2xl w-full max-w-lg shadow-2xl flex flex-col overflow-hidden">
+      <div class="px-6 py-4 border-b border-[var(--border)] flex items-center justify-between">
+        <h3 id="modalContactTitle" class="font-bold text-base text-[var(--foreground)]">New Contact</h3>
+        <button id="btnCloseContactModal" class="text-[var(--muted-foreground)] hover:text-[var(--foreground)] text-lg">✕</button>
+      </div>
+
+      <form id="contactForm" class="p-6 flex flex-col gap-4 overflow-y-auto max-h-[75vh]">
+        <input type="hidden" id="formId">
+        <div class="grid grid-cols-2 gap-3">
+          <div class="flex flex-col gap-1">
+            <label class="text-xs font-semibold text-[var(--muted-foreground)]">Full Name *</label>
+            <input type="text" id="formName" required placeholder="John Doe" class="bg-[var(--background)] border border-[var(--border)] rounded-lg px-3 py-2 text-xs text-[var(--foreground)] outline-none focus:border-indigo-500">
+          </div>
+          <div class="flex flex-col gap-1">
+            <label class="text-xs font-semibold text-[var(--muted-foreground)]">Primary Phone *</label>
+            <input type="text" id="formPhone" required placeholder="+1 555-0199" class="bg-[var(--background)] border border-[var(--border)] rounded-lg px-3 py-2 text-xs text-[var(--foreground)] outline-none focus:border-indigo-500">
+          </div>
+        </div>
+
+        <div class="grid grid-cols-2 gap-3">
+          <div class="flex flex-col gap-1">
+            <label class="text-xs font-semibold text-[var(--muted-foreground)]">Work Phone</label>
+            <input type="text" id="formWorkPhone" placeholder="Office / Direct" class="bg-[var(--background)] border border-[var(--border)] rounded-lg px-3 py-2 text-xs text-[var(--foreground)] outline-none focus:border-indigo-500">
+          </div>
+          <div class="flex flex-col gap-1">
+            <label class="text-xs font-semibold text-[var(--muted-foreground)]">Email Address</label>
+            <input type="email" id="formEmail" placeholder="john@example.com" class="bg-[var(--background)] border border-[var(--border)] rounded-lg px-3 py-2 text-xs text-[var(--foreground)] outline-none focus:border-indigo-500">
+          </div>
+        </div>
+
+        <div class="grid grid-cols-2 gap-3">
+          <div class="flex flex-col gap-1">
+            <label class="text-xs font-semibold text-[var(--muted-foreground)]">Company / Org</label>
+            <input type="text" id="formCompany" placeholder="Acme Corp" class="bg-[var(--background)] border border-[var(--border)] rounded-lg px-3 py-2 text-xs text-[var(--foreground)] outline-none focus:border-indigo-500">
+          </div>
+          <div class="flex flex-col gap-1">
+            <label class="text-xs font-semibold text-[var(--muted-foreground)]">Group</label>
+            <select id="formGroup" class="bg-[var(--background)] border border-[var(--border)] rounded-lg px-3 py-2 text-xs text-[var(--foreground)] outline-none focus:border-indigo-500"></select>
+          </div>
+        </div>
+
+        <div class="flex flex-col gap-1">
+          <label class="text-xs font-semibold text-[var(--muted-foreground)]">Address</label>
+          <input type="text" id="formAddress" placeholder="Street, City, State, ZIP" class="bg-[var(--background)] border border-[var(--border)] rounded-lg px-3 py-2 text-xs text-[var(--foreground)] outline-none focus:border-indigo-500">
+        </div>
+
+        <div class="flex flex-col gap-1">
+          <label class="text-xs font-semibold text-[var(--muted-foreground)]">Notes</label>
+          <textarea id="formNotes" placeholder="Additional details, tags, or reminders..." rows="2" class="bg-[var(--background)] border border-[var(--border)] rounded-lg px-3 py-2 text-xs text-[var(--foreground)] outline-none focus:border-indigo-500 resize-none"></textarea>
+        </div>
+
+        <label class="flex items-center gap-2 text-xs text-[var(--foreground)] cursor-pointer">
+          <input type="checkbox" id="formFavorite" class="rounded accent-indigo-500">
+          <span>Star as Favorite Contact ★</span>
+        </label>
+
+        <div class="pt-3 border-t border-[var(--border)] flex justify-end gap-2">
+          <button type="button" id="btnCancelContact" class="px-4 py-2 rounded-lg border border-[var(--border)] hover:bg-[var(--background)] text-xs font-semibold">Cancel</button>
+          <button type="submit" class="px-4 py-2 rounded-lg bg-indigo-600 hover:bg-indigo-500 text-white text-xs font-semibold shadow-sm">Save Contact</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- TOAST ALERT -->
+  <div id="toast" class="fixed bottom-5 right-5 bg-indigo-600 text-white px-4 py-2.5 rounded-xl shadow-lg text-xs font-semibold transition transform translate-y-16 opacity-0 pointer-events-none z-50 flex items-center gap-2">
+    <span>✓</span>
+    <span id="toastMsg">Action completed</span>
+  </div>
+
+  <script>
+    (function () {
+      let currentUser = sessionStorage.getItem('cms_user') || '';
+      let contacts = [];
+      let groups = [];
+      let activeFilter = 'all';
+      let selectedId = null;
+      let searchQuery = '';
+      let sortMode = 'name-asc';
+      let authMode = 'login'; // 'login' or 'register'
+
+      const gradients = [
+        'linear-gradient(135deg, #6366f1, #a855f7)',
+        'linear-gradient(135deg, #3b82f6, #06b6d4)',
+        'linear-gradient(135deg, #f59e0b, #ef4444)',
+        'linear-gradient(135deg, #10b981, #059669)',
+        'linear-gradient(135deg, #ec4899, #8b5cf6)'
+      ];
+
+      function getGradient(name) {
+        let hash = 0;
+        for (let i = 0; i < (name || '').length; i++) hash = name.charCodeAt(i) + ((hash << 5) - hash);
+        return gradients[Math.abs(hash) % gradients.length];
+      }
+
+      function getInitials(name) {
+        if (!name) return '?';
+        const parts = name.trim().split(/\s+/);
+        if (parts.length === 1) return parts[0].substring(0, 2).toUpperCase();
+        return (parts[0][0] + parts[parts.length - 1][0]).toUpperCase();
+      }
+
+      function toast(msg) {
+        const el = document.getElementById('toast');
+        document.getElementById('toastMsg').textContent = msg;
+        el.classList.remove('translate-y-16', 'opacity-0');
+        setTimeout(() => el.classList.add('translate-y-16', 'opacity-0'), 2500);
+      }
+
+      // Authentication handling
+      const modalAuth = document.getElementById('modalAuth');
+      const authForm = document.getElementById('authForm');
+      const tabLogin = document.getElementById('tabLogin');
+      const tabRegister = document.getElementById('tabRegister');
+      const authErrorMsg = document.getElementById('authErrorMsg');
+      const btnAuthSubmit = document.getElementById('btnAuthSubmit');
+
+      tabLogin.onclick = () => {
+        authMode = 'login';
+        tabLogin.className = 'flex-1 py-2.5 text-xs font-bold text-indigo-500 border-b-2 border-indigo-500 transition';
+        tabRegister.className = 'flex-1 py-2.5 text-xs font-semibold text-[var(--muted-foreground)] hover:text-[var(--foreground)] transition';
+        btnAuthSubmit.textContent = 'Sign In';
+        authErrorMsg.classList.add('hidden');
+      };
+
+      tabRegister.onclick = () => {
+        authMode = 'register';
+        tabRegister.className = 'flex-1 py-2.5 text-xs font-bold text-indigo-500 border-b-2 border-indigo-500 transition';
+        tabLogin.className = 'flex-1 py-2.5 text-xs font-semibold text-[var(--muted-foreground)] hover:text-[var(--foreground)] transition';
+        btnAuthSubmit.textContent = 'Create Account';
+        authErrorMsg.classList.add('hidden');
+      };
+
+      authForm.onsubmit = async (e) => {
+        e.preventDefault();
+        const username = document.getElementById('authUsername').value.trim();
+        const password = document.getElementById('authPassword').value.trim();
+
+        authErrorMsg.classList.add('hidden');
+        const endpoint = authMode === 'login' ? '/api/auth/login' : '/api/auth/register';
+
+        try {
+          const res = await fetch(endpoint, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ username, password })
+          });
+          const data = await res.json();
+          if (data.success) {
+            currentUser = username;
+            sessionStorage.setItem('cms_user', currentUser);
+            modalAuth.classList.add('hidden');
+            toast(`Logged in as ${currentUser}`);
+            initUserApp();
+          } else {
+            authErrorMsg.textContent = data.error || data.message || 'Authentication failed.';
+            authErrorMsg.classList.remove('hidden');
+          }
+        } catch (err) {
+          // If server offline, allow local demo login
+          currentUser = username;
+          sessionStorage.setItem('cms_user', currentUser);
+          modalAuth.classList.add('hidden');
+          toast(`Local session: ${currentUser}`);
+          initUserApp();
+        }
+      };
+
+      document.getElementById('btnSwitchAccount').onclick = () => {
+        sessionStorage.removeItem('cms_user');
+        currentUser = '';
+        contacts = [];
+        groups = [];
+        selectedId = null;
+        renderContacts();
+        renderGroups();
+        modalAuth.classList.remove('hidden');
+      };
+
+      async function loadUserData() {
+        if (!currentUser) return;
+        try {
+          const [cRes, gRes] = await Promise.all([
+            fetch(`/api/contacts?user=${encodeURIComponent(currentUser)}`),
+            fetch(`/api/groups?user=${encodeURIComponent(currentUser)}`)
+          ]);
+          if (cRes.ok) contacts = await cRes.json();
+          if (gRes.ok) groups = await gRes.json();
+        } catch (e) {
+          const stored = localStorage.getItem(`cms_${currentUser}_contacts`);
+          contacts = stored ? JSON.parse(stored) : [];
+          groups = [
+            { name: 'Family', color: '#10b981' },
+            { name: 'Friends', color: '#f59e0b' },
+            { name: 'Work', color: '#3b82f6' },
+            { name: 'Clients', color: '#8b5cf6' }
+          ];
+        }
+
+        if (groups.length === 0) {
+          groups = [
+            { name: 'Family', color: '#10b981' },
+            { name: 'Friends', color: '#f59e0b' },
+            { name: 'Work', color: '#3b82f6' },
+            { name: 'Clients', color: '#8b5cf6' }
+          ];
+        }
+
+        renderGroups();
+        renderContacts();
+        if (contacts.length > 0) {
+          selectedId = contacts[0].id;
+          renderDetail(contacts[0]);
+        } else {
+          renderDetail(null);
+        }
+      }
+
+      function syncUserData() {
+        if (!currentUser) return;
+        localStorage.setItem(`cms_${currentUser}_contacts`, JSON.stringify(contacts));
+        fetch('/api/contacts/save', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ user: currentUser, contacts })
+        }).catch(() => {});
+      }
+
+      function initUserApp() {
+        document.getElementById('userNameDisplay').textContent = currentUser;
+        document.getElementById('userAvatar').textContent = currentUser[0].toUpperCase();
+        loadUserData();
+      }
+
+      function renderGroups() {
+        const list = document.getElementById('sidebarGroups');
+        list.innerHTML = '';
+        const select = document.getElementById('formGroup');
+        select.innerHTML = '<option value="General">General</option>';
+
+        groups.forEach(g => {
+          const count = contacts.filter(c => (c.group || '').toLowerCase() === g.name.toLowerCase()).length;
+          const btn = document.createElement('button');
+          btn.className = `w-full flex items-center justify-between px-3 py-1.5 rounded-lg text-xs font-medium text-[var(--muted-foreground)] hover:bg-[var(--card)] hover:text-[var(--foreground)] transition ${activeFilter === g.name ? 'bg-[var(--card)] text-[var(--foreground)] font-semibold' : ''}`;
+          btn.innerHTML = `
+            <span class="flex items-center gap-2">
+              <span class="w-2 h-2 rounded-full" style="background:${g.color || '#6366f1'};"></span>
+              <span>${g.name}</span>
+            </span>
+            <span class="text-xs text-[var(--muted-foreground)]">${count}</span>
+          `;
+          btn.onclick = () => {
+            activeFilter = g.name;
+            document.getElementById('listHeaderTitle').textContent = `${g.name} Contacts`;
+            renderContacts();
+            renderGroups();
+          };
+          list.appendChild(btn);
+
+          const opt = document.createElement('option');
+          opt.value = g.name;
+          opt.textContent = g.name;
+          select.appendChild(opt);
+        });
+
+        document.getElementById('badgeAll').textContent = contacts.length;
+        document.getElementById('badgeFavs').textContent = contacts.filter(c => c.isFavorite).length;
+      }
+
+      function getFilteredContacts() {
+        let list = [...contacts];
+        if (activeFilter === 'favorites') list = list.filter(c => c.isFavorite);
+        else if (activeFilter !== 'all') list = list.filter(c => (c.group || '').toLowerCase() === activeFilter.toLowerCase());
+
+        if (searchQuery.trim()) {
+          const q = searchQuery.toLowerCase();
+          list = list.filter(c =>
+            c.name.toLowerCase().includes(q) ||
+            c.phone.toLowerCase().includes(q) ||
+            (c.email || '').toLowerCase().includes(q) ||
+            (c.company || '').toLowerCase().includes(q)
+          );
+        }
+
+        if (sortMode === 'name-asc') list.sort((a,b) => a.name.localeCompare(b.name));
+        else if (sortMode === 'name-desc') list.sort((a,b) => b.name.localeCompare(a.name));
+        else if (sortMode === 'company') list.sort((a,b) => (a.company || '').localeCompare(b.company || ''));
+        else if (sortMode === 'recent') list.sort((a,b) => b.id - a.id);
+
+        return list;
+      }
+
+      function renderContacts() {
+        const container = document.getElementById('contactsContainer');
+        const list = getFilteredContacts();
+        document.getElementById('contactCountBadge').textContent = `${list.length} contact${list.length === 1 ? '' : 's'}`;
+
+        container.innerHTML = '';
+        if (list.length === 0) {
+          container.innerHTML = '<div class="text-center py-10 text-xs text-[var(--muted-foreground)]">No contacts in this view</div>';
+          renderDetail(null);
+          return;
+        }
+
+        list.forEach(c => {
+          const card = document.createElement('div');
+          const isSelected = c.id === selectedId;
+          card.className = `flex items-center gap-3 p-2.5 rounded-xl cursor-pointer border transition ${isSelected ? 'bg-indigo-500/10 border-indigo-500/40' : 'bg-[var(--card)] border-[var(--border)] hover:border-[var(--muted-foreground)]'}`;
+          card.onclick = () => { selectedId = c.id; renderContacts(); renderDetail(c); };
+
+          card.innerHTML = `
+            <div class="w-10 h-10 rounded-full flex items-center justify-center text-white text-xs font-bold shrink-0" style="background:${getGradient(c.name)};">
+              ${getInitials(c.name)}
+            </div>
+            <div class="flex-1 min-w-0">
+              <div class="flex items-center justify-between">
+                <span class="text-xs font-semibold text-[var(--foreground)] truncate">${c.name}</span>
+                <span class="${c.isFavorite ? 'text-amber-400' : 'text-transparent'} text-xs">★</span>
+              </div>
+              <div class="text-xs text-[var(--muted-foreground)] truncate mt-0.5">${c.phone || c.email || 'No phone'}</div>
+            </div>
+          `;
+          container.appendChild(card);
+        });
+
+        const activeContact = contacts.find(item => item.id === selectedId) || list[0];
+        if (activeContact) renderDetail(activeContact);
+      }
+
+      function renderDetail(c) {
+        const empty = document.getElementById('detailEmptyState');
+        const content = document.getElementById('detailActiveState');
+        if (!c) {
+          empty.classList.remove('hidden');
+          content.classList.add('hidden');
+          return;
+        }
+        empty.classList.add('hidden');
+        content.classList.remove('hidden');
+        content.classList.add('flex');
+
+        document.getElementById('dAvatar').style.background = getGradient(c.name);
+        document.getElementById('dAvatar').textContent = getInitials(c.name);
+        document.getElementById('dName').textContent = c.name;
+        document.getElementById('dRoleCompany').textContent = [c.company, c.group !== 'General' ? c.group : ''].filter(Boolean).join(' · ') || 'Contact Details';
+        document.getElementById('dStarToggle').textContent = c.isFavorite ? '★' : '☆';
+        document.getElementById('dStarToggle').className = `text-xl ${c.isFavorite ? 'text-amber-400' : 'text-[var(--muted-foreground)]'} hover:scale-110 transition cursor-pointer`;
+        document.getElementById('dStarToggle').onclick = () => {
+          c.isFavorite = c.isFavorite ? 0 : 1;
+          renderContacts();
+          renderDetail(c);
+          syncUserData();
+          toast(c.isFavorite ? `Starred ${c.name}` : `Unstarred ${c.name}`);
+        };
+
+        document.getElementById('dPhone').textContent = c.phone || '-';
+        document.getElementById('dWorkPhone').textContent = c.workPhone || '-';
+        document.getElementById('dEmail').textContent = c.email || '-';
+        document.getElementById('dGroup').textContent = c.group || 'General';
+        document.getElementById('dAddress').textContent = c.address || '-';
+        document.getElementById('dNotes').textContent = c.notes || 'No notes added.';
+        document.getElementById('dId').textContent = `#${c.id}`;
+        document.getElementById('dCreated').textContent = c.createdAt || '2026-09-25';
+
+        document.getElementById('dActionCall').href = c.phone ? `tel:${c.phone}` : '#';
+        document.getElementById('dActionEmail').href = c.email ? `mailto:${c.email}` : '#';
+        document.getElementById('dActionCopy').onclick = () => {
+          navigator.clipboard.writeText(`${c.name} | Phone: ${c.phone} | Email: ${c.email}`);
+          toast('Contact copied to clipboard');
+        };
+        document.getElementById('dActionVcard').onclick = () => {
+          const vcard = `BEGIN:VCARD\nVERSION:3.0\nFN:${c.name}\nTEL;TYPE=CELL:${c.phone}\nEMAIL:${c.email}\nORG:${c.company}\nNOTE:${c.notes}\nEND:VCARD`;
+          const blob = new Blob([vcard], { type: 'text/vcard' });
+          const a = document.createElement('a');
+          a.href = URL.createObjectURL(blob);
+          a.download = `${c.name}.vcf`;
+          a.click();
+          toast(`Exported ${c.name}.vcf`);
+        };
+      }
+
+      // Add/Edit Modals
+      document.getElementById('btnOpenAddContact').onclick = () => {
+        document.getElementById('modalContactTitle').textContent = 'New Contact';
+        document.getElementById('contactForm').reset();
+        document.getElementById('formId').value = '';
+        document.getElementById('modalContact').classList.remove('hidden');
+        document.getElementById('modalContact').classList.add('flex');
+      };
+
+      document.getElementById('btnEditContact').onclick = () => {
+        const c = contacts.find(item => item.id === selectedId);
+        if (!c) return;
+        document.getElementById('modalContactTitle').textContent = 'Edit Contact';
+        document.getElementById('formId').value = c.id;
+        document.getElementById('formName').value = c.name;
+        document.getElementById('formPhone').value = c.phone;
+        document.getElementById('formWorkPhone').value = c.workPhone || '';
+        document.getElementById('formEmail').value = c.email || '';
+        document.getElementById('formCompany').value = c.company || '';
+        document.getElementById('formGroup').value = c.group || 'General';
+        document.getElementById('formAddress').value = c.address || '';
+        document.getElementById('formNotes').value = c.notes || '';
+        document.getElementById('formFavorite').checked = !!c.isFavorite;
+        document.getElementById('modalContact').classList.remove('hidden');
+        document.getElementById('modalContact').classList.add('flex');
+      };
+
+      document.getElementById('btnDeleteContact').onclick = () => {
+        const c = contacts.find(item => item.id === selectedId);
+        if (!c) return;
+        if (confirm(`Delete ${c.name}?`)) {
+          contacts = contacts.filter(item => item.id !== c.id);
+          selectedId = contacts.length ? contacts[0].id : null;
+          syncUserData();
+          renderContacts();
+          renderGroups();
+          toast(`Deleted ${c.name}`);
+        }
+      };
+
+      document.getElementById('btnCloseContactModal').onclick = () => {
+        document.getElementById('modalContact').classList.add('hidden');
+        document.getElementById('modalContact').classList.remove('flex');
+      };
+      document.getElementById('btnCancelContact').onclick = document.getElementById('btnCloseContactModal').onclick;
+
+      document.getElementById('contactForm').onsubmit = (e) => {
+        e.preventDefault();
+        const idVal = document.getElementById('formId').value;
+        const name = document.getElementById('formName').value.trim();
+        const phone = document.getElementById('formPhone').value.trim();
+        if (!name || !phone) return;
+
+        if (idVal) {
+          const c = contacts.find(item => item.id === parseInt(idVal, 10));
+          if (c) {
+            c.name = name;
+            c.phone = phone;
+            c.workPhone = document.getElementById('formWorkPhone').value.trim();
+            c.email = document.getElementById('formEmail').value.trim();
+            c.company = document.getElementById('formCompany').value.trim();
+            c.group = document.getElementById('formGroup').value;
+            c.address = document.getElementById('formAddress').value.trim();
+            c.notes = document.getElementById('formNotes').value.trim();
+            c.isFavorite = document.getElementById('formFavorite').checked ? 1 : 0;
+            toast(`Updated ${name}`);
+          }
+        } else {
+          const newId = contacts.reduce((m, c) => Math.max(m, c.id), 0) + 1;
+          const newC = {
+            id: newId,
+            name,
+            phone,
+            workPhone: document.getElementById('formWorkPhone').value.trim(),
+            email: document.getElementById('formEmail').value.trim(),
+            company: document.getElementById('formCompany').value.trim(),
+            group: document.getElementById('formGroup').value,
+            address: document.getElementById('formAddress').value.trim(),
+            notes: document.getElementById('formNotes').value.trim(),
+            isFavorite: document.getElementById('formFavorite').checked ? 1 : 0,
+            createdAt: '2026-09-25'
+          };
+          contacts.push(newC);
+          selectedId = newId;
+          toast(`Added ${name}`);
+        }
+
+        syncUserData();
+        document.getElementById('modalContact').classList.add('hidden');
+        document.getElementById('modalContact').classList.remove('flex');
+        renderContacts();
+        renderGroups();
+      };
+
+      document.getElementById('navAll').onclick = () => {
+        activeFilter = 'all';
+        document.getElementById('listHeaderTitle').textContent = 'All Contacts';
+        renderContacts();
+      };
+
+      document.getElementById('navFavs').onclick = () => {
+        activeFilter = 'favorites';
+        document.getElementById('listHeaderTitle').textContent = 'Starred Favorites';
+        renderContacts();
+      };
+
+      document.getElementById('searchInput').oninput = (e) => {
+        searchQuery = e.target.value;
+        renderContacts();
+      };
+
+      document.getElementById('sortSelect').onchange = (e) => {
+        sortMode = e.target.value;
+        renderContacts();
+      };
+
+      // Check current login state
+      if (currentUser) {
+        modalAuth.classList.add('hidden');
+        initUserApp();
+      } else {
+        modalAuth.classList.remove('hidden');
+      }
+    })();
+  </script>
+</body>
+</html>
