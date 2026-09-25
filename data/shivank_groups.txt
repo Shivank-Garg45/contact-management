@@ -1,0 +1,5 @@
+4
+1|Family|Immediate and extended family
+2|Friends|Personal friends and buddies
+3|Work|Colleagues and professional network
+4|Clients|Customers and business partners
