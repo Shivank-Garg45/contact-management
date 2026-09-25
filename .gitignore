@@ -1,0 +1,14 @@
+*.o
+*.obj
+*.exe
+*.out
+contact_manager
+app.exe
+.DS_Store
+Thumbs.db
+*.bak
+*.tmp
+*~
+__pycache__/
+*.pyc
+contacts_export.*
